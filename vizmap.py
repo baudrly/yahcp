@@ -8,9 +8,9 @@ import hicstuff as hcs
 from matplotlib import pyplot as plt
 from scipy import sparse
 
-load_raw_matrix = functools.partial(np.genfromtxt,
-                                    skip_header=True,
-                                    dtype=np.float64)
+load_raw_matrix = functools.partial(
+    np.genfromtxt, skip_header=True, dtype=np.float64
+)
 
 
 def raw_cols_to_sparse(M):
@@ -32,10 +32,11 @@ def sparse_to_dense(M):
 
 def plot_matrix(M, vmax=99):
     plt.figure()
-    plt.imshow(M, vmax=np.percentile(M, vmax),
-               cmap='Reds', interpolation='none')
+    plt.imshow(
+        M, vmax=np.percentile(M, vmax), cmap="Reds", interpolation="none"
+    )
     plt.colorbar()
-    plt.axis('off')
+    plt.axis("off")
     plt.show()
 
 
