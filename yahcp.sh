@@ -83,8 +83,8 @@ while [[ $# -gt 0 ]]; do
             duplicate=1
             shift
         ;;
-        -c|--clean-up)
-            clean_up=1
+        -n|--no-clean-up)
+            clean_up=0
             shift
         ;;
         -C|--circular)
@@ -109,39 +109,39 @@ set -- "${arguments[@]}"
 
 #Hopefully useful help message if one of the mandatory parameters is missing
 if [ -z $reads_for ] || [ -z $reads_rev ] || [ -z $fasta ] || [ $trigger_help -eq 1 ]; then
-    echo ""
-    echo "    yahcp (Yet Another Hi-C Pipeline) - A simple and relatively painless Hi-C data processing pipeline"
-    echo ""
-    echo "    Usage: ./yachp.sh -1 reads_forward.fastq -2 reads_reverse.fastq -f genome.fa [-s size] [-o output_directory] [-e enzyme] [-q quality_min] [--duplicates] [--clean-up]"
-    echo ""
-    echo "    Generate a sparse, GRAAL-compatible contact map from paired-end reads and a reference genome (for more information about GRAAL, see https://github.com/koszullab/GRAAL)."
-    echo "    The map can also be easily visualized with HiC-Box (see https://github.com/koszullab/HiC-Box)."
-    echo "    Information about fragments and contigs/chromosomes are stored in separate files."
-    echo "    The genome can either be partitioned by restriction fragments (specifying the enzyme) or fixed size chunks (specifying a number)."
-    echo ""
-    echo "    Requires bowtie2, samtools, bedtools and python (with Biopython installed) to run. Optionally, minimap2 can be used instead of bowtie2 if specified."
-    echo ""
-    echo "    Parameters:"
-    echo ""
-    echo "        -1 or --forward: Forward FASTQ reads"
-    echo "        -2 or --reverse: Reverse FASTQ reads"
-    echo "        -f or --fasta: Reference genome to map against in FASTA format"
-    echo "        -o or --output: Output directory. Defaults to the current directory."
-    echo "        -e or --enzyme: Restriction enzyme if a string, or chunk size (i.e. resolution) if a number. Defaults to 5000 bp chunks."
-    echo "        -q or --quality-min: Minimum mapping quality for selecting contacts. Defaults to 30."
-    echo "        -d or --duplicates: If enabled, removes adapters and PCR duplicates prior to mapping. Not enabled by default."
-    echo "        -s or --size: Minimum size threshold to consider contigs. Defaults to 0 (keep all contigs)."
-    echo "        -c or --clean-up: If enabled, removes intermediary BED files after generating the contact map. Enabled by default."
-    echo "        -t or --threads: Number of threads to use for the aligner and samtools. Defaults to 1."
-    echo "        -T or --tmp: Directory for storing intermediary BED files and temporary sort files. Defaults to the output directory."
-    echo "        -m or --minimap: Use the minimap2 aligner instead of bowtie2. Not enabled by default."
-    echo "        -h or --help: Display this help message."
-    echo ""
-    echo "    The expected files in the output directory will take the form:"
-    echo "        -abs_fragments_contacts_weighted.txt: the sparse contact map"
-    echo "        -fragments_list.txt: information about restriction fragments (or chunks)"
-    echo "        -info_contigs.txt: information about contigs or chromosomes"
-    echo ""
+    echo """
+       yahcp (Yet Another Hi-C Pipeline) - A simple and relatively painless Hi-C data processing pipeline
+    
+       Usage: ./yachp.sh -1 reads_forward.fastq -2 reads_reverse.fastq -f genome.fa [-s size] [-o output_directory] [-e enzyme] [-q quality_min] [--duplicates] [--clean-up]
+    
+       Generate a sparse, GRAAL-compatible contact map from paired-end reads and a reference genome (for more information about GRAAL, see https://github.com/koszullab/GRAAL).
+       The map can also be easily visualized with HiC-Box (see https://github.com/koszullab/HiC-Box).
+       Information about fragments and contigs/chromosomes are stored in separate files.
+       The genome can either be partitioned by restriction fragments (specifying the enzyme) or fixed size chunks (specifying a number).
+    
+       Requires bowtie2, samtools, bedtools and python (with Biopython installed) to run. Optionally, minimap2 can be used instead of bowtie2 if specified.
+    
+       Parameters:
+    
+           -1 or --forward: Forward FASTQ reads
+           -2 or --reverse: Reverse FASTQ reads
+           -f or --fasta: Reference genome to map against in FASTA format
+           -o or --output: Output directory. Defaults to the current directory.
+           -e or --enzyme: Restriction enzyme if a string, or chunk size (i.e. resolution) if a number. Defaults to 5000 bp chunks.
+           -q or --quality-min: Minimum mapping quality for selecting contacts. Defaults to 30.
+           -d or --duplicates: If enabled, removes adapters and PCR duplicates prior to mapping. Not enabled by default.
+           -s or --size: Minimum size threshold to consider contigs. Defaults to 0 (keep all contigs).
+           -n or --no-clean-up: If enabled, intermediary BED files will kept after generating the contact map. Disabled by defaut.
+           -t or --threads: Number of threads to use for the aligner and samtools. Defaults to 1.
+           -T or --tmp: Directory for storing intermediary BED files and temporary sort files. Defaults to the output directory.
+           -m or --minimap: Use the minimap2 aligner instead of bowtie2. Not enabled by default.
+           -h or --help: Display this help message.
+    
+       The expected files in the output directory will take the form:
+           -abs_fragments_contacts_weighted.txt: the sparse contact map
+           -fragments_list.txt: information about restriction fragments (or chunks)
+           -info_contigs.txt: information about contigs or chromosomes
+    """
     exit 1
 fi
 
