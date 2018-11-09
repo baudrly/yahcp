@@ -110,6 +110,7 @@ def normalize(M, norm="SCN"):
     try:
         return hcs.normalize_sparse(M, norm=norm)
     except NameError:
+        print("Warning: hicstuff not found, skipping normalization.")
         return M
 
 

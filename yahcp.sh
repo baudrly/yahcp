@@ -79,6 +79,10 @@ while [[ $# -gt 0 ]]; do
             minimap=1
             shift 
         ;;
+        -p|--pos-matrix)
+            posmat=1
+            shift 
+        ;;
         -d|--duplicates)
             duplicate=1
             shift
@@ -240,7 +244,7 @@ bedtools intersect -a $tmp_dir/total_contacts.bed -b $tmp_dir/fragments_list.bed
 
 #Write GRAAL matrix out of intersecting bed file
 echo "Generating contact map..."
-python $current_dir/fraglist.py --intersection $tmp_dir/contact_intersect_sorted.bed --frags $output_dir/fragments_list.txt --output-dir $output_dir
+python $current_dir/fraglist.py --intersection $tmp_dir/contact_intersect_sorted.bed --frags $output_dir/fragments_list.txt --output-dir $output_dir ${posmat:+-p}
 
 if [ $clean_up -eq 1 ]; then
     rm $tmp_dir/fragments_list.bed
