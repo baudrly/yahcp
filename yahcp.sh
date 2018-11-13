@@ -136,6 +136,7 @@ if [ -z $reads_for ] || [ -z $reads_rev ] || [ -z $fasta ] || [ $trigger_help -e
            -d or --duplicates: If enabled, removes adapters and PCR duplicates prior to mapping. Not enabled by default.
            -s or --size: Minimum size threshold to consider contigs. Defaults to 0 (keep all contigs).
            -n or --no-clean-up: If enabled, intermediary BED files will kept after generating the contact map. Disabled by defaut.
+           -p or --pos-matrix: If enable, generates a sparse matrix with positions (chr,pos) instead of GRAAL-compatible format.
            -t or --threads: Number of threads to use for the aligner and samtools. Defaults to 1.
            -T or --tmp: Directory for storing intermediary BED files and temporary sort files. Defaults to the output directory.
            -m or --minimap: Use the minimap2 aligner instead of bowtie2. Not enabled by default.
