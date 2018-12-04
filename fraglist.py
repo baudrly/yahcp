@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # coding: utf-8
 
 """
@@ -103,7 +103,7 @@ def write_frag_info(
                                 current_id > 1 and start_pos > 0
                             )
                         except AssertionError:
-                            print(current_id, start_pos)
+                            print((current_id, start_pos))
                             raise
                         start_pos = end_pos
                         current_id += 1
@@ -124,7 +124,6 @@ def write_sparse_matrix(
     fragments_list=DEFAULT_SPARSE_MATRIX_FILE_NAME,
     output_file=DEFAULT_SPARSE_MATRIX_FILE_NAME,
     output_dir=None,
-    pos_matrix=False
 ):
     """Generate a GRAAL-compatible sparse matrix from a sorted intersection
     BED file.
@@ -161,25 +160,25 @@ def write_sparse_matrix(
             else:
                 (
                     _,
-                    start_forward,
-                    end_forward,
+                    _,
+                    _,
                     name_forward,
-                    orientation_forward,
+                    _,
                     contig_forward,
                     start_fragment_forward,
-                    end_fragment_forward,
+                    _,
                 ) = read_forward
 
                 read_reverse = line.split("\t")
                 (
                     _,
-                    start_reverse,
-                    end_reverse,
+                    _,
+                    _,
                     name_reverse,
-                    orientation_reverse,
+                    _,
                     contig_reverse,
                     start_fragment_reverse,
-                    end_fragment_reverse,
+                    _,
                 ) = read_reverse
 
                 # Detect contacts in the form of matching readnames
@@ -195,9 +194,11 @@ def write_sparse_matrix(
                         id_frag_rev = ids_and_positions[abs_position_rev]
                     except KeyError:
                         print(
-                            "Couldn't find matching fragment "
-                            "id for position {} or position "
-                            "{}".format(id_frag_for, id_frag_rev)
+                            (
+                                "Couldn't find matching fragment "
+                                "id for position {} or position "
+                                "{}".format(id_frag_for, id_frag_rev)
+                            )
                         )
                     else:
                         fragment_pair = tuple(
@@ -221,33 +222,16 @@ def write_sparse_matrix(
     print("Done.")
 
     print("Writing sparse matrix...")
-    if pos_matrix:
-        # Get reverse mapping between fragments ids and pos
-        positions_and_ids = {id: pos for pos, id in ids_and_positions.items()}
-        def parse_coord(coord): return ','.join(str(x) for x in coord)
 
-        with open(output_file_path, "w") as output_handle:
-            output_handle.write("chr_a,pos_a\tchr_b,pos_b\tn_contact\n")
-            for id_pair in sorted(contacts):
-                id_fragment_a, id_fragment_b = id_pair
-                nb_contacts = contacts[id_pair]
-                coord_a = parse_coord(positions_and_ids[id_fragment_a])
-                coord_b = parse_coord(positions_and_ids[id_fragment_b])
-                line_to_write = "{}\t{}\t{}\n".format(
-                    coord_a, coord_b, nb_contacts
-                )
-                output_handle.write(line_to_write)
-
-    else:
-        with open(output_file_path, "w") as output_handle:
-            output_handle.write("id_frag_a\tid_frag_b\tn_contact\n")
-            for id_pair in sorted(contacts):
-                id_fragment_a, id_fragment_b = id_pair
-                nb_contacts = contacts[id_pair]
-                line_to_write = "{}\t{}\t{}\n".format(
-                    id_fragment_a, id_fragment_b, nb_contacts
-                )
-                output_handle.write(line_to_write)
+    with open(output_file_path, "w") as output_handle:
+        output_handle.write("id_frag_a\tid_frag_b\tn_contact\n")
+        for id_pair in sorted(contacts):
+            id_fragment_a, id_fragment_b = id_pair
+            nb_contacts = contacts[id_pair]
+            line_to_write = "{}\t{}\t{}\n".format(
+                id_fragment_a, id_fragment_b, nb_contacts
+            )
+            output_handle.write(line_to_write)
 
     print("Done.")
 
@@ -257,7 +241,6 @@ def dade_to_GRAAL(
     output_matrix=DEFAULT_SPARSE_MATRIX_FILE_NAME,
     output_contigs=DEFAULT_INFO_CONTIGS_FILE_NAME,
     output_frags=DEFAULT_SPARSE_MATRIX_FILE_NAME,
-    output_dir=None,
 ):
     """Convert a matrix from DADE format (https://github.com/scovit/dade)
     to a GRAAL-compatible format. Since DADE matrices contain both fragment
@@ -287,8 +270,10 @@ def dade_to_GRAAL(
         print("I detected fixed size binning")
     else:
         print(
-            "Sorry, I don't understand this matrix's "
-            "binning: I read {}".format(str(bin_type))
+            (
+                "Sorry, I don't understand this matrix's "
+                "binning: I read {}".format(str(bin_type))
+            )
         )
 
     header_data = [
@@ -305,7 +290,7 @@ def dade_to_GRAAL(
         local_frag_ids,
         frag_starts,
         frag_ends,
-    ) = np.array(zip(*header_data))
+    ) = np.array(list(zip(*header_data)))
 
     frag_starts = frag_starts.astype(np.int32) - 1
     frag_ends = frag_ends.astype(np.int32) - 1
@@ -355,7 +340,7 @@ def dade_to_GRAAL(
         print("Fragment list written")
 
 
-if __name__ == "__main__":
+def main():
 
     parser = argparse.ArgumentParser(
         description="Process and " "generate GRAAL compatible" " contact maps."
@@ -388,9 +373,7 @@ if __name__ == "__main__":
         "-o", "--output-dir", help="Directory for output files", required=True
     )
 
-    parser.add_argument("-p", "--pos-matrix", help="Generate position-based "
-                        "sparse matrix (chrA,posA\tchrB,posB\tcontacts) rather than GRAAL "
-                        "compatible.", action="store_true")
+    parser.add_argument("-m", "--matrix", help="Matrix mode")
 
     parser.add_argument(
         "-e",
@@ -410,35 +393,37 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    dade = args.dade
-    pos_matrix = args.pos_matrix
-    output_dir = args.output_dir
-    enzyme = args.enzyme
-    frags = args.frags
-    fasta = args.fasta
-    intersection = args.intersection
-    size = args.size
-    circular = args.circular
+    _dade = args.dade
+    _output_dir = args.output_dir
+    _enzyme = args.enzyme
+    _frags = args.frags
+    _fasta = args.fasta
+    _intersection = args.intersection
+    _size = args.size
+    _circular = args.circular
 
-    if intersection:
-        input_file = intersection
+    if _intersection:
+        input_file = _intersection
         write_sparse_matrix(
             intersect_sorted=input_file,
-            fragments_list=frags,
-            output_dir=output_dir,
-            pos_matrix=pos_matrix
+            fragments_list=_frags,
+            output_dir=_output_dir,
         )
 
-    elif dade:
-        input_file = dade
-        dade_to_GRAAL(input_file, output_dir=output_dir)
+    elif _dade:
+        input_file = _dade
+        dade_to_GRAAL(input_file)
 
-    elif fasta:
-        input_file = fasta
+    elif _fasta:
+        input_file = _fasta
         write_frag_info(
             fasta=input_file,
-            enzyme=enzyme,
-            size=size,
-            circular=circular,
-            output_dir=output_dir,
+            enzyme=_enzyme,
+            size=_size,
+            circular=_circular,
+            output_dir=_output_dir,
         )
+
+
+if __name__ == "__main__":
+    main()
