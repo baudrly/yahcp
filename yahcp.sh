@@ -230,7 +230,13 @@ $alignment_instruction_rev \
 
 wait
 
-sort -T $tmp_dir -k1,1d -k2,2n $tmp_dir/unsorted_contacts_for.bed $tmp_dir/unsorted_contacts_rev.bed \
+# Check if version of UNIX sort supports parallelization and add flag if it does
+par=$(sort --version | awk 'NR==1 {if($NF > 8.23) {print 1} else {print 0}}')
+if [ $par == 1 ]; then
+    sort_par="--parallel=$t"
+fi
+
+sort  -S 2G ${sort_par} -T $tmp_dir -k1,1d -k2,2n $tmp_dir/unsorted_contacts_for.bed $tmp_dir/unsorted_contacts_rev.bed \
     > $tmp_dir/total_contacts.bed
 
 #Make a bed out of fragments_list.txt
@@ -240,10 +246,10 @@ awk 'NR>1 { print $2"\t"$3"\t"$4 }' $output_dir/fragments_list.txt > $tmp_dir/fr
 echo "Intersecting bed files..."
 bedtools intersect -a $tmp_dir/total_contacts.bed -b $tmp_dir/fragments_list.bed -wa -wb \
     | awk 'OFS="\t" { print $1,$2,$3,$4,$5,$(NF-2),$(NF-1),$NF }' \
-    | sort -k4d -T $tmp_dir \
+    | sort -k4d -S 2G -T $tmp_dir ${sort_par} \
     > $tmp_dir/contact_intersect_sorted.bed
 
-#Write GRAAL matrix out of intersecting bed file
+# Write GRAAL matrix out of intersecting bed file
 echo "Generating contact map..."
 python $current_dir/fraglist.py --intersection $tmp_dir/contact_intersect_sorted.bed --frags $output_dir/fragments_list.txt --output-dir $output_dir ${posmat:+-p}
 
